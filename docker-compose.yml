@@ -1,0 +1,31 @@
+version: '3' # docker-compose 버전
+services:    # 서비스 할 컨테이너 정보
+  db:
+    image: mysql:latest            # 컨테이너에 올릴 이미지.
+                                   # image: 로 하는 방법과 build: 로 하는 방법 두 가지가 있다.
+                                     # build: 로 할 경우, 하위에 추가로 context: 와 dockerfile: 설정을 잡아줘야한다.             
+    volumes:                       # volume 마운트
+      - ./db/data/:/var/lib/mysql/ 
+      - ./db/mysql-init-files/:/docker-entrypoint-initdb.d/
+    restart: always                # 컨테이너 종료되면 자동으로 재실행
+    container_name: kreComposeMysql # 컨테이너 이름 설정
+    environment:                   
+      MYSQL_ROOT_PASSWORD: 1234    # root 비밀번호
+      LC_ALL: C.UTF-8              # 인코딩 설정
+      LANG: C.UTF-8                # 인코딩 설정
+    ports:                         # 포트포워딩
+      - 7777:3306
+  app:                   
+    image: ryeongeun/kre_tomcat:9.0.53-jdk16                # 컨테이너에 올릴 이미지
+    volumes:                       # volume 마운트
+      - ./tomcat/webapps/:/usr/local/tomcat/webapps/
+    restart: always                 # 자동 재실행 
+    container_name: kreComposeTomcat # 컨테이너 이름
+    ports:                          # 포트포워딩
+      - 8888:8080
+    depends_on:                     # 다른 서비스 컨테이너와의 연결 관계 설정
+      - db
+    links:                          # 다른 서비스 컨테이너와의 연결 관계 설정
+      - db
+
+# depends_on과 links가 하는 역할이 같은 것 같은데 둘의 차이는 잘 모르겠다.
